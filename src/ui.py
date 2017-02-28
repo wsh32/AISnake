@@ -2,7 +2,7 @@
 
 """ui.py: User Interface for the snake"""
 
-import pygame
+import pygame, sys
 
 __author__ = "Wesley Soo-Hoo"
 __license__ = "MIT"
@@ -23,6 +23,7 @@ UP = pygame.K_UP
 DOWN = pygame.K_DOWN
 LEFT = pygame.K_LEFT
 RIGHT = pygame.K_RIGHT
+QUIT = pygame.K_q
 
 
 class SinglePlayerUI:
@@ -47,8 +48,22 @@ class SinglePlayerUI:
 
         self.screen = pygame.display.set_mode((self.window_width, self.window_height))
 
-    def draw_grid(self):
+    def update(self):
+        # This function should be run every repetition
+        # Reset screen
         self.screen.fill(BGCOLOR)
+        self.draw_grid()
+
+        # Check for events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit(0)
+            if event.type == pygame.KEYDOWN:
+                if event.key == QUIT:
+                    sys.exit(0)
+
+        self.fps_clock.tick(self.fps)
+
+    def draw_grid(self):
         for x in range(self.outside_margin, self.window_width, self.segment_size+self.segment_margin):
             pygame.draw.line(self.screen, DARK_GRAY, (x, self.outside_margin),
                              (x, self.window_height - self.outside_margin), self.segment_margin)
@@ -56,4 +71,3 @@ class SinglePlayerUI:
             pygame.draw.line(self.screen, DARK_GRAY, (self.outside_margin, y),
                              (self.window_width - self.outside_margin, y), self.segment_margin)
         pygame.display.flip()
-        self.fps_clock.tick(self.fps)
