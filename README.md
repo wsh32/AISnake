@@ -1,4 +1,4 @@
-# AI Snake
+# MultiSnake
 
 AP Computer Science Principles Create Task
 
