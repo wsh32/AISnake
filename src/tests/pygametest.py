@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""test.py: Testing the pygame library to make sure it is usable.
+"""pygametest.py: Testing the pygame library to make sure it is usable.
 The documentation for this is here: https://www.pygame.org/docs/"""
 
 import sys, pygame

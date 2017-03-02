@@ -9,7 +9,6 @@ __license__ = "MIT"
 
 
 if __name__ == '__main__':
-    spui = ui.SinglePlayerUI(15, 10, 30, 1, 5, 60)
-    spui.draw_grid()
+    spui = ui.SinglePlayerUI(20, 15, 30, 1, 5, 10)
     while True:
-        pass
+        spui.update()
