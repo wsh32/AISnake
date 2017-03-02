@@ -76,6 +76,105 @@ class TwoPlayerGame:
         self.width = width
         self.height = height
 
+        self.last_direction_1 = Direction.LEFT
+        self.last_direction_2 = Direction.LEFT
+
+        self.snake_1 = Snake(int(width/2), int(height/3))
+        self.snake_2 = Snake(int(width/2), int(height/3 * 2))
+        apple_coords = self.generate_apple_coords()
+        self.apple = Segment(apple_coords[0], apple_coords[1])
+        self.apple_triggered_s1 = False
+        self.apple_triggered_s2 = False
+        self.alive_s1 = True
+        self.alive_s2 = True
+
+    def generate_apple_coords(self):
+        while True:
+            x = random.randint(0, self.width - 1)
+            y = random.randint(0, self.height - 1)
+            if not (self.snake_1.collided((x, y)) or self.snake_2.collided((x, y))):
+                print("Generating new apple", x, y)
+                return x, y
+        return False
+
+    def get_apple(self):
+        return self.apple
+
+    def get_snake_1(self):
+        return self.snake_1
+
+    def get_snake_2(self):
+        return self.snake_2
+
+    def snake_1_alive(self):
+        return self.alive_s1
+
+    def snake_2_alive(self):
+        return self.alive_s2
+
+    def update(self, direction1, direction2):
+
+        if not direction1:
+            current_direction_1 = self.last_direction_1
+        elif (self.last_direction_1 == Direction.UP and direction1 == Direction.DOWN) or \
+            (self.last_direction_1 == Direction.DOWN and direction1 == Direction.UP) or \
+            (self.last_direction_1 == Direction.LEFT and direction1 == Direction.RIGHT) or \
+            (self.last_direction_1 == Direction.RIGHT and direction1 == Direction.LEFT):
+            current_direction_1 = self.last_direction_1
+        else:
+            current_direction_1 = direction1
+
+        if not direction2:
+            current_direction_2 = self.last_direction_2
+        elif (self.last_direction_2 == Direction.UP and direction2 == Direction.DOWN) or \
+            (self.last_direction_2 == Direction.DOWN and direction2 == Direction.UP) or \
+            (self.last_direction_2 == Direction.LEFT and direction2 == Direction.RIGHT) or \
+            (self.last_direction_2 == Direction.RIGHT and direction2 == Direction.LEFT):
+            current_direction_2 = self.last_direction_2
+        else:
+            current_direction_2 = direction2
+
+        self.last_direction_1 = current_direction_1
+        self.last_direction_2 = current_direction_2
+
+        self.snake_1.update(current_direction_1, self.apple_triggered_s1)
+        self.snake_2.update(current_direction_2, self.apple_triggered_s2)
+
+        self.apple_triggered_s1 = self.apple.collided(self.snake_1.get_head().get_position())
+        self.apple_triggered_s2 = self.apple.collided(self.snake_2.get_head().get_position())
+
+        if self.apple_triggered_s1 or self.apple_triggered_s2:
+            apple_coords = self.generate_apple_coords()
+            self.apple.set_position(apple_coords[0], apple_coords[1])
+
+        if self.snake_1.suicide():
+            self.alive_s1 = False
+        elif self.snake_1.get_head().get_x() < 0:
+            self.alive_s1 = False
+        elif self.snake_1.get_head().get_x() >= self.width:
+            self.alive_s1 = False
+        elif self.snake_1.get_head().get_y() < 0:
+            self.alive_s1 = False
+        elif self.snake_1.get_head().get_y() >= self.height:
+            self.alive_s1 = False
+        elif self.snake_2.collided(self.snake_1.get_head().get_position()):
+            self.alive_s1 = False
+
+        if self.snake_2.suicide():
+            self.alive_s2 = False
+        elif self.snake_2.get_head().get_x() < 0:
+            self.alive_s2 = False
+        elif self.snake_2.get_head().get_x() >= self.width:
+            self.alive_s2 = False
+        elif self.snake_2.get_head().get_y() < 0:
+            self.alive_s2 = False
+        elif self.snake_2.get_head().get_y() >= self.height:
+            self.alive_s2 = False
+        elif self.snake_1.collided(self.snake_2.get_head().get_position()):
+            self.alive_s2 = False
+
+        return self.alive_s1 and self.alive_s2
+
 
 class Direction(Enum):
     UP = 0
