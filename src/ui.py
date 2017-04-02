@@ -2,7 +2,10 @@
 
 """ui.py: User Interface for the snake"""
 
-import pygame, sys, time
+import sys
+
+import pygame
+
 from snake import *
 
 __author__ = "Wesley Soo-Hoo"
@@ -17,6 +20,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 DARK_GREEN = (0, 155, 0)
+GRAY = (80, 80, 80)
 DARK_GRAY = (40, 40, 40)
 ORANGE = (255, 155, 111)
 
@@ -24,8 +28,12 @@ BGCOLOR = BLACK
 GRID_COLOR = DARK_GRAY
 SNAKE_COLOR = WHITE
 APPLE_COLOR = RED
+TEXT_COLOR = GREEN
+BG_TEXT_COLOR = GRAY
 
 SNAKE2_COLOR = BLUE
+
+START = pygame.K_b
 
 UP = pygame.K_UP
 DOWN = pygame.K_DOWN
@@ -62,7 +70,7 @@ class GridUI:
         self.fps = fps
         self.fps_clock = pygame.time.Clock()
 
-        self.screen = pygame.display.set_mode((self.window_width, self.window_height), pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode((self.window_width, self.window_height))
 
     def draw_grid(self):
         for x in range(self.outside_margin, self.window_width, self.segment_size+self.segment_margin):
@@ -74,8 +82,8 @@ class GridUI:
 
     def fill_cell(self, x, y, color):
         if 0 <= x < self.cells_width and 0 <= y < self.cells_height:
-            rect_x = x * self.total_segment + self.outside_margin + self.segment_margin - 1
-            rect_y = y * self.total_segment + self.outside_margin + self.segment_margin - 1
+            rect_x = x * self.total_segment + self.outside_margin + self.segment_margin
+            rect_y = y * self.total_segment + self.outside_margin + self.segment_margin
             rectangle = pygame.Rect(rect_x, rect_y, self.segment_size, self.segment_size)
             pygame.draw.rect(self.screen, color, rectangle)
 
@@ -86,12 +94,59 @@ class GridUI:
         for i in snake.get_coords():
             self.fill_cell(i.get_x(), i.get_y(), color)
 
+    def draw_text(self, text, border):
+        text = self.font.render(text, True, TEXT_COLOR)
+        text_rect = text.get_rect(center=(self.window_width/2, self.window_height/2))
+
+        bg_rect_x = self.window_width/2 - text.get_rect().width/2 - border
+        bg_rect_y = self.window_height/2 - text.get_rect().height/2 - border
+        bg_rect_w = text.get_rect().width + 2*border
+        bg_rect_h = text.get_rect().height + 2*border
+        rectangle = pygame.Rect(bg_rect_x, bg_rect_y, bg_rect_w, bg_rect_h)
+
+        pygame.draw.rect(self.screen, BG_TEXT_COLOR, rectangle)
+
+        self.screen.blit(text, text_rect)
+        pygame.display.flip()
+
+    def title(self, title):
+        self.screen.fill(BGCOLOR)
+        self.draw_grid()
+        self.draw_text(title, 10)
+
 
 class SinglePlayerUI(GridUI):
     def __init__(self, cells_width, cells_height, segment_size, segment_margin, outside_margin, fps):
         super().__init__(cells_width, cells_height, segment_size, segment_margin, outside_margin, fps)
 
         self.game = SinglePlayerGame(cells_width, cells_height)
+        self.winner = 2
+
+    def go(self):
+        self.title("Single Player Snake! Press 'b' to begin!")
+        while self.winner == 2:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: sys.exit(0)
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == START:
+                        self.winner = 0
+        self.play()
+
+    def play(self):
+        self.game = SinglePlayerGame(self.cells_width, self.cells_height)
+        while self.winner == 0:
+            self.update()
+        while self.winner == 1:
+            self.draw_text("You lose! Score: " + str(self.game.get_snake().get_length()), 10)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: sys.exit(0)
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == RESET:
+                        self.winner = 0
+                        break
+                    elif event.key == QUIT:
+                        sys.exit(0)
+        self.play()
 
     def update(self):
         # This function should be run every repetition
@@ -116,12 +171,12 @@ class SinglePlayerUI(GridUI):
                 elif event.key == RIGHT:
                     direction = Direction.RIGHT
 
-        if not self.game.update(direction):
-            print("YOU DIED")
-        else:
-            self.draw_apple(self.game.get_apple(), APPLE_COLOR)
-            self.draw_snake(self.game.get_snake(), SNAKE_COLOR)
+        self.draw_apple(self.game.get_apple(), APPLE_COLOR)
+        self.draw_snake(self.game.get_snake(), SNAKE_COLOR)
 
+        if not self.game.update(direction):
+            self.winner = 1
+        else:
             pygame.display.flip()
 
         self.fps_clock.tick(self.fps)
@@ -132,6 +187,32 @@ class TwoPlayerUI(GridUI):
         super().__init__(cells_width, cells_height, segment_size, segment_margin, outside_margin, fps)
 
         self.game = TwoPlayerGame(cells_width, cells_height)
+        self.winner = 3
+
+    def go(self):
+        while self.winner == 3:
+            self.title("Two Player Snake! Press 'b' to begin!")
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: sys.exit(0)
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == START:
+                        self.winner = 0
+        self.play()
+
+    def play(self):
+        while self.winner == 0:
+            self.update()
+        while self.winner == 1 or self.winner == 2:
+            self.draw_text("Player " + str(self.winner) + " wins! Press 'r' to play again or press 'q' to quit!", 10)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: sys.exit(0)
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == RESET:
+                        self.winner = 0
+                        break
+                    elif event.key == QUIT:
+                        sys.exit(0)
+        self.play()
 
     def update(self):
         # This function should be run every repetition
@@ -164,15 +245,14 @@ class TwoPlayerUI(GridUI):
                     direction_2 = Direction.LEFT
                 elif event.key == RIGHT2:
                     direction_2 = Direction.RIGHT
-                elif event.key == RESET:
-                    self.game = TwoPlayerGame(self.cells_width, self.cells_height)
 
         if not self.game.update(direction_1, direction_2):
             if self.game.alive_s1 and not self.game.alive_s2:
-                print("Player One Wins")
+                self.winner = 1
             elif self.game.alive_s2 and not self.game.alive_s1:
-                print("Player Two Wins")
+                self.winner = 2
         else:
+            self.winner = 0
             self.draw_apple(self.game.get_apple(), APPLE_COLOR)
             self.draw_snake(self.game.get_snake_1(), SNAKE_COLOR)
             self.draw_snake(self.game.get_snake_2(), SNAKE2_COLOR)

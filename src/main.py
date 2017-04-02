@@ -9,16 +9,14 @@ __license__ = "MIT"
 
 
 def single():
-    spui = ui.SinglePlayerUI(20, 15, 30, 1, 5, 10)
-    while True:
-        spui.update()
+    spui = ui.SinglePlayerUI(15, 15, 30, 1, 5, 15)
+    spui.go()
 
 
 def double():
     tpui = ui.TwoPlayerUI(30, 20, 30, 1, 5, 10)
-    while True:
-        tpui.update()
+    tpui.go()
 
 
 if __name__ == '__main__':
-    double()
+    single()
