@@ -19,4 +19,4 @@ def double():
 
 
 if __name__ == '__main__':
-    single()
+    double()

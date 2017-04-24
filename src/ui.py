@@ -200,6 +200,7 @@ class TwoPlayerUI(GridUI):
         self.play()
 
     def play(self):
+        self.game = TwoPlayerGame(self.cells_width, self.cells_height)
         while self.winner == 0:
             self.update()
         while self.winner == 1 or self.winner == 2:
@@ -246,6 +247,10 @@ class TwoPlayerUI(GridUI):
                 elif event.key == RIGHT2:
                     direction_2 = Direction.RIGHT
 
+        self.draw_apple(self.game.get_apple(), APPLE_COLOR)
+        self.draw_snake(self.game.get_snake_1(), SNAKE_COLOR)
+        self.draw_snake(self.game.get_snake_2(), SNAKE2_COLOR)
+
         if not self.game.update(direction_1, direction_2):
             if self.game.alive_s1 and not self.game.alive_s2:
                 self.winner = 1
@@ -253,9 +258,6 @@ class TwoPlayerUI(GridUI):
                 self.winner = 2
         else:
             self.winner = 0
-            self.draw_apple(self.game.get_apple(), APPLE_COLOR)
-            self.draw_snake(self.game.get_snake_1(), SNAKE_COLOR)
-            self.draw_snake(self.game.get_snake_2(), SNAKE2_COLOR)
 
             pygame.display.flip()
 
